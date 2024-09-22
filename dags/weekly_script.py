@@ -6,9 +6,9 @@ from datetime import datetime, timedelta
 # Функция для получения относительных путей к папкам
 def get_paths():
     # Указываем относительные пути к директориям с данными, ежедневными и итоговыми файлами
-    data_dir = os.path.join('..', 'data')
-    daily_dir = os.path.join('..', 'daily')
-    output_dir = os.path.join('..', 'output')
+    data_dir = os.path.join('.', 'data')
+    daily_dir = os.path.join('.', 'daily')
+    output_dir = os.path.join('.', 'output')
     return data_dir, daily_dir, output_dir
 
 # Функция для агрегации данных за один день (если файл не существует в daily)
