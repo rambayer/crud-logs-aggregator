@@ -1,0 +1,65 @@
+x-airflow-common-environment: &airflow-common-environment
+  # Общие переменные окружения для всех сервисов Airflow
+  AIRFLOW__CORE__EXECUTOR: 'LocalExecutor'
+  AIRFLOW__CORE__SQL_ALCHEMY_CONN: 'postgresql+psycopg2://airflow:airflow@postgres/airflow'
+  AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+  AIRFLOW__WEBSERVER__SECRET_KEY: 'your_random_generated_secret_key'
+  TZ: 'UTC'
+
+services:
+  postgres:
+    image: postgres:alpine  # Легковесная версия PostgreSQL
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    restart: always
+
+  webserver:
+    image: apache/airflow:2.5.0  # Образ для веб-сервера Airflow
+    depends_on:
+      - postgres
+      - initdb
+    environment:
+      <<: *airflow-common-environment
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./data:/opt/airflow/data
+      - ./output:/opt/airflow/output
+      - ./daily:/opt/airflow/daily
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "
+      airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin &&
+      airflow webserver"  # Команда для создания администратора Airflow и запуска веб-сервера
+    restart: always
+
+  scheduler:
+    image: apache/airflow:2.5.0  # Образ для планировщика задач
+    depends_on:
+      - webserver
+    environment:
+      <<: *airflow-common-environment
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./data:/opt/airflow/data
+      - ./output:/opt/airflow/output
+      - ./daily:/opt/airflow/daily
+    command: scheduler
+    restart: always
+
+  initdb:
+    image: apache/airflow:2.5.0  # Образ для инициализации базы данных Airflow
+    environment:
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: 'postgresql+psycopg2://airflow:airflow@postgres/airflow'
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./data:/opt/airflow/data
+      - ./output:/opt/airflow/output
+      - ./daily:/opt/airflow/daily
+      - ./logs:/opt/airflow/logs
+    command: bash -c "airflow db init"  # Инициализация базы данных Airflow
+    restart: 'no'  # Этот контейнер не будет перезапускаться после завершения работы
