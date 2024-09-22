@@ -1,12 +1,14 @@
 # Игнорируем содержимое директорий logs, temp, input, output
 logs/
-output/
-daily/
 postgres-data/
 
 # Игнорируем CSV файлы, которые могут появляться в output и daily
 output/*.csv
 daily/*.csv
+
+# Исключаем из игнорирования файлы .gitkeep
+!output/.gitkeep
+!daily/.gitkeep
 
 # Игнорируем кэшированные файлы Python
 __pycache__/
